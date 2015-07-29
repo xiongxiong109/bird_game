@@ -216,8 +216,11 @@ function createReadyBox(){
 	
 	var spriteSheet=new createjs.SpriteSheet( birdSprite );
 	var bird=new createjs.Sprite( spriteSheet ,"stand"); //绘制一个不动的鸟
-	bird.x=(game.width-34) /2;
+	bird.x=game.width*0.2;
 	bird.y=120;
+	//改变旋转中心点
+	bird.regX=17;
+	bird.regY=12;
 	readyBox.addChild(bird);
 	
 	var instruct=new createjs.Bitmap("assets/instructions.png");
@@ -225,4 +228,73 @@ function createReadyBox(){
 	instruct.y=(game.height-98)/2;
 	readyBox.addChild(instruct);
 	
+	//点击开始游戏
+	readyBox.addEventListener("click",function(){
+		//创建移动动画
+		stage.removeChild(readyBox);
+		gameMove();
+
+	});
+}
+
+//给鸟一个重力
+var gravity=6;
+//给鸟一个跳动的速度
+var speed=40;
+function gameMove(){
+
+	createBg();
+	createGround();
+	var bird=createGameBox();
+	createjs.Ticker.addEventListener("tick",function(){
+		birdMove(bird,gravity);
+	});
+
+}
+
+// createGameBox();
+function createGameBox(){
+	var gameBox=new createjs.Container();
+	stage.addChild(gameBox);
+
+	//在原坐标处绘制一个飞动的小鸟
+	var spriteSheet=new createjs.SpriteSheet( birdSprite );
+	var bird=new createjs.Sprite( spriteSheet ,"fly"); //绘制一个不动的鸟
+	bird.x=game.width*0.2;
+	bird.y=120;
+	//改变旋转中心点
+	bird.regX=17;
+	bird.regY=12;
+	gameBox.addChild(bird);
+
+	stage.addEventListener("click",function(){
+
+		createjs.Tween.get(bird)
+		.to({
+			y:bird.y-speed,
+			rotation:-30,
+		},200,createjs.Ease.easeOut)
+		.call(function(){
+			//运动结束以后模拟初速度为0，重力加速度还原
+			gravity=6;
+		})
+
+	});
+	return bird;
+}
+
+//不断上下移动的鸟
+function birdMove(bird,gravity){
+
+	gravity+=4;
+	bird.y+=gravity;
+	//往下掉
+	if(bird.rotation<90){
+		bird.rotation+=3;
+	}
+	//与地板的碰撞检测
+	var hitHeight=game.height-112-12;
+	if(bird.y>=hitHeight){
+		bird.y=hitHeight; //地板的距离加上鸟的中心点的距离
+	}
 }
